@@ -26,7 +26,7 @@ HUGEGRAPH_GIT_URL="https://github.com/apache/hugegraph.git"
 GIT_DIR=hugegraph
 
 # download code and compile
-git clone --depth 100 ${HUGEGRAPH_GIT_URL} $GIT_DIR
+git clone --depth 150 ${HUGEGRAPH_GIT_URL} $GIT_DIR
 cd "${GIT_DIR}"
 git checkout "${COMMIT_ID}"
 mvn package -DskipTests -Dmaven.javadoc.skip=true -ntp
@@ -60,5 +60,5 @@ echo "gremlinserver.url=http://127.0.0.1:8282" >> ${REST_SERVER_CONFIG}
 
 # start HugeGraphServer with https protocol
 bin/init-store.sh
-bin/start-hugegraph.sh
+bin/start-hugegraph.sh || (cat logs/hugegraph-server.log && exit 1)
 cd ../

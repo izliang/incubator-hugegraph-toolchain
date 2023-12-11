@@ -12,6 +12,9 @@
 name: "CodeQL"
 
 on:
+  workflow_dispatch:
+  push:
+    branches: [ master, release-* ]
   pull_request:
     # The branches below must be a subset of the branches above
     # branches: [ master ] # enable in all PR
@@ -20,6 +23,8 @@ on:
 
 jobs:
   analyze:
+    env:
+      USE_STAGE: 'true' # Whether to include the stage repository.
     name: Analyze
     runs-on: ubuntu-latest
     permissions:
@@ -42,6 +47,12 @@ jobs:
       with:
         distribution: 'zulu'
         java-version: '8'
+
+    - name: use staged maven repo settings
+      if: ${{ env.USE_STAGE == 'true' }}
+      run: |
+        cp $HOME/.m2/settings.xml /tmp/settings.xml
+        mv -vf .github/configs/settings.xml $HOME/.m2/settings.xml
         
     - name: Use Node.js 16
       uses: actions/setup-node@v3

@@ -1,6 +1,7 @@
-name: "hugegraph-loader-ci"
+name: "loader-ci"
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
@@ -22,8 +23,10 @@ jobs:
   loader-ci:
     runs-on: ubuntu-latest
     env:
+      USE_STAGE: 'true' # Whether to include the stage repository.
       TRAVIS_DIR: hugegraph-loader/assembly/travis
       STATIC_DIR: hugegraph-loader/assembly/static
+      # TODO: replace it with the (latest - n) commit id (n >= 15)
       COMMIT_ID: be6ee386b9939dc6bd6fcbdf2274b8acc3a0a314
       DB_USER: root
       DB_PASS: root
@@ -47,6 +50,12 @@ jobs:
         with:
           fetch-depth: 2
 
+      - name: use staged maven repo settings
+        if: ${{ env.USE_STAGE == 'true' }}
+        run: |
+          cp $HOME/.m2/settings.xml /tmp/settings.xml
+          mv -vf .github/configs/settings.xml $HOME/.m2/settings.xml
+
       - name: Compile
         run: |
           mvn install -pl hugegraph-client,hugegraph-loader -am -Dmaven.javadoc.skip=true -DskipTests -ntp
@@ -67,6 +76,7 @@ jobs:
           mvn test -P kafka
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3.0.0
+        uses: codecov/codecov-action@v3
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           file: target/jacoco.xml
